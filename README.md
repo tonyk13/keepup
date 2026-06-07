@@ -1,12 +1,12 @@
 # KeepUp
 
-An intelligent AI news aggregator that continuously scrapes top AI research labs, tech blogs, arXiv, newsletters, Reddit, and Hacker News — then scores and filters out the noise so you only see high-signal posts.
+An intelligent AI news aggregator that continuously scrapes top AI research labs, tech blogs, arXiv, newsletters, Reddit, and Hacker News - then scores and filters out the noise so you only see high-signal posts.
 
 ## Features
 
 - **Continuous Scraping**: Monitors 60+ sources every 60 minutes
 - **AI-First Scoring**: Heuristic scoring (0–100) with strong bias toward AI/ML substance; filters marketing fluff and generic noise
-- **Smart Defaults**: Loads with past week + min score 75 + arXiv hidden — so you see fresh, high-signal news immediately
+- **Smart Defaults**: Loads with past week + min score 75 + arXiv hidden - so you see fresh, high-signal news immediately
 - **Multi-Source Coverage**:
   - **AI Research Labs**: Anthropic, OpenAI, Google AI, Meta AI, xAI, Mistral, Cohere, DeepSeek, Qwen, Stability AI
   - **AI Tooling**: Hugging Face, LangChain, LlamaIndex, Pinecone, Weaviate, Cursor, Replicate
@@ -30,13 +30,13 @@ An intelligent AI news aggregator that continuously scrapes top AI research labs
 ## Design Decisions
 
 **Why SQLite?**
-I chose SQLite because the project is intentionally self-contained — no external DB server to provision or manage. For ~3K posts and a single-user read-heavy workload, SQLite with WAL mode is more than sufficient. If I ever need concurrent writers or horizontal scaling, migrating to Postgres is straightforward.
+I chose SQLite because the project is intentionally self-contained - no external DB server to provision or manage. For ~3K posts and a single-user read-heavy workload, SQLite with WAL mode is more than sufficient. If I ever need concurrent writers or horizontal scaling, migrating to Postgres is straightforward.
 
 **Why heuristic scoring instead of an LLM?**
 LLM inference would make every scrape expensive, slow, and non-deterministic. A tuned heuristic gives instant, reproducible scores on every run. I iterated on keyword weights and penalties until the top results consistently matched what I'd actually want to read.
 
 **Why modular scrapers?**
-Each source gets its own scraper class (RSS, HTML, API). This isolates failures — if Anthropic changes their markup, only that scraper breaks. It also makes adding new sources a one-line change.
+Each source gets its own scraper class (RSS, HTML, API). This isolates failures - if Anthropic changes their markup, only that scraper breaks. It also makes adding new sources a one-line change.
 
 **Why FastAPI?**
 Async-native out of the box, automatic OpenAPI docs, and native support for background tasks (used for on-demand scrapes). The API surface is small but fully typed.
@@ -86,12 +86,12 @@ npm run dev
 
 ### 3. API
 
-- `GET /api/posts` — list posts (filter by category, source, min_score, since, search, read, favorite, exclude_source)
-- `POST /api/posts/{id}/read` — mark as read
-- `POST /api/posts/{id}/favorite` — toggle favorite
-- `GET /api/stats` — dashboard stats
-- `POST /api/trigger-scrape` — manually trigger a scrape
-- `POST /api/re-evaluate` — re-score all existing posts
+- `GET /api/posts` - list posts (filter by category, source, min_score, since, search, read, favorite, exclude_source)
+- `POST /api/posts/{id}/read` - mark as read
+- `POST /api/posts/{id}/favorite` - toggle favorite
+- `GET /api/stats` - dashboard stats
+- `POST /api/trigger-scrape` - manually trigger a scrape
+- `POST /api/re-evaluate` - re-score all existing posts
 
 ## Scoring System
 
