@@ -27,6 +27,26 @@ An intelligent AI news aggregator that continuously scrapes top AI research labs
 - **Scrapers**: Modular RSS, JSON API, and HTML scrapers for each source
 - **Evaluator**: Heuristic scoring based on AI keywords, novelty signals, content length, code snippets, data presence, recency boost, and marketing-noise penalties
 
+## Design Decisions
+
+**Why SQLite?**
+I chose SQLite because the project is intentionally self-contained — no external DB server to provision or manage. For ~3K posts and a single-user read-heavy workload, SQLite with WAL mode is more than sufficient. If I ever need concurrent writers or horizontal scaling, migrating to Postgres is straightforward.
+
+**Why heuristic scoring instead of an LLM?**
+LLM inference would make every scrape expensive, slow, and non-deterministic. A tuned heuristic gives instant, reproducible scores on every run. I iterated on keyword weights and penalties until the top results consistently matched what I'd actually want to read.
+
+**Why modular scrapers?**
+Each source gets its own scraper class (RSS, HTML, API). This isolates failures — if Anthropic changes their markup, only that scraper breaks. It also makes adding new sources a one-line change.
+
+**Why FastAPI?**
+Async-native out of the box, automatic OpenAPI docs, and native support for background tasks (used for on-demand scrapes). The API surface is small but fully typed.
+
+**Why hide arXiv by default?**
+Research papers are high-signal but they absolutely dominate the top scores because every abstract is dense with AI terminology. Hiding them by default keeps the feed balanced with news, product launches, and commentary. The toggle lets you dive into papers when you want them.
+
+**Why sentinel dates?**
+When a scraper can't parse a date, the honest thing to do is admit it rather than stamp "today" on everything. We use `1970-01-01` as a sentinel and display "Unknown date" in the UI. The recency boost in the scorer skips sentinel dates so they don't unfairly rank higher.
+
 ## Quick Start
 
 ### 1. Install dependencies
