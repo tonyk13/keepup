@@ -78,7 +78,7 @@ function App() {
               <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">KeepUp</h1>
             </div>
             <p className="hidden sm:block text-xs italic text-gray-500 dark:text-gray-400 ml-10 -mt-0.5">
-              It's like every week there's something new
+              It's like every week there's something new...
             </p>
           </div>
           <div className="ml-auto flex items-center gap-3">
