@@ -303,9 +303,19 @@ def re_evaluate_all(db: Session = Depends(get_db)):
     db.commit()
     return {"ok": True, "updated": updated}
 
-# Serve frontend in production (optional, for local dev we run separately)
+# Serve frontend in production (from backend/static if available, otherwise from ../../frontend/dist)
 from fastapi.staticfiles import StaticFiles
 import os
-frontend_dist = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
-if os.path.exists(frontend_dist):
+
+_frontend_candidates = [
+    os.path.join(os.path.dirname(__file__), "static"),
+    os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"),
+]
+frontend_dist = None
+for candidate in _frontend_candidates:
+    if os.path.exists(candidate):
+        frontend_dist = candidate
+        break
+
+if frontend_dist:
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="static")

@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/backend"
 
-echo "Starting KeepUp backend..."
-cd backend
-source ../venv/bin/activate
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
-echo $! > .pid
-echo "Backend started on http://localhost:8000"
-echo ""
-echo "Frontend is served automatically at http://localhost:8000"
-echo "API docs at http://localhost:8000/docs"
+PORT="${PORT:-8000}"
+
+# Use the virtual env if it exists, otherwise system Python
+if [ -d "../venv" ]; then
+    source ../venv/bin/activate
+fi
+
+echo "Starting KeepUp on port $PORT..."
+uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
