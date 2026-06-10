@@ -2,7 +2,6 @@ import os
 import httpx
 from typing import Optional
 
-KIMI_API_KEY = os.getenv("KIMI_API_KEY", "")
 KIMI_BASE_URL = os.getenv("KIMI_BASE_URL", "https://api.moonshot.ai/v1")
 
 SYSTEM_PROMPT = (
@@ -12,7 +11,9 @@ SYSTEM_PROMPT = (
 )
 
 async def summarize_post(title: str, content: str) -> Optional[str]:
-    if not KIMI_API_KEY:
+    api_key = os.getenv("KIMI_API_KEY", "")
+    if not api_key:
+        print("[Kimi] KIMI_API_KEY not set, skipping summary generation")
         return None
 
     # Truncate content to avoid burning tokens
@@ -24,7 +25,7 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
             resp = await client.post(
                 f"{KIMI_BASE_URL}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {KIMI_API_KEY}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
                 json={
@@ -41,6 +42,9 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
             data = resp.json()
             summary = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             return summary if summary else None
+    except httpx.HTTPStatusError as e:
+        print(f"[Kimi] HTTP error {e.response.status_code}: {e.response.text}")
+        return None
     except Exception as e:
         print(f"[Kimi] Summary failed: {e}")
         return None

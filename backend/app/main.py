@@ -296,6 +296,13 @@ def get_stats(db: Session = Depends(get_db)):
         "average_score": round(avg, 2),
     }
 
+@app.get("/api/health")
+def health_check():
+    return {
+        "ok": True,
+        "kimi_api_key_configured": bool(os.getenv("KIMI_API_KEY")),
+    }
+
 @app.post("/api/trigger-scrape")
 def trigger_scrape(background_tasks: BackgroundTasks):
     db = SessionLocal()
