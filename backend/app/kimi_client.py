@@ -34,7 +34,7 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": user_prompt},
                     ],
-                    "temperature": 0.3,
+                    "temperature": 1,
                     "max_tokens": 120,
                 },
             )
