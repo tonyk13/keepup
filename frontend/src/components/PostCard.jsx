@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Star, Eye, EyeOff } from 'lucide-react';
+import { ExternalLink, Star, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 function ScoreBadge({ score }) {
   let cls = 'score-low';
@@ -57,7 +57,15 @@ export default function PostCard({ post, onToggleRead, onToggleFavorite }) {
               {post.title}
             </a>
           </h3>
-          {post.content && (
+          {post.llm_summary && (
+            <div className="mt-2 flex items-start gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-sky-500 mt-0.5 shrink-0" />
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic">
+                {post.llm_summary}
+              </p>
+            </div>
+          )}
+          {!post.llm_summary && post.content && (
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-3 leading-relaxed">
               {post.content}
             </p>

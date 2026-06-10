@@ -16,6 +16,7 @@ def strip_html(text: str) -> str:
 from .db import init_db, get_db, SessionLocal, Post, Source
 from .evaluator import evaluate_post, is_junk_post
 from .scrapers import get_all_scrapers
+from .kimi_client import summarize_post
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -90,6 +91,23 @@ async def _run_scrapers(db: Session):
                 db.add(post)
                 added += 1
             db.commit()
+            # Generate LLM summaries for newly added posts
+            if added > 0:
+                try:
+                    new_posts = db.query(Post).filter(
+                        Post.source == source_name,
+                        Post.scraped_at >= datetime.utcnow() - timedelta(minutes=5)
+                    ).all()
+                    for np in new_posts:
+                        if not np.llm_summary:
+                            summary = await summarize_post(np.title, np.content)
+                            if summary:
+                                np.llm_summary = summary
+                                db.add(np)
+                    db.commit()
+                except Exception as e:
+                    print(f"[{datetime.now().isoformat()}] ERROR summarizing {source_name}: {e}")
+                    db.rollback()
             # Update source metadata
             src = db.query(Source).filter(Source.name == source_name).first()
             if src:
@@ -205,6 +223,7 @@ def list_posts(
                 "title": p.title,
                 "url": p.url,
                 "content": strip_html(p.content),
+                "llm_summary": p.llm_summary,
                 "source": p.source,
                 "category": p.category,
                 "published_at": p.published_at.isoformat() if p.published_at else None,
@@ -302,6 +321,31 @@ def re_evaluate_all(db: Session = Depends(get_db)):
             updated += 1
     db.commit()
     return {"ok": True, "updated": updated}
+
+@app.post("/api/posts/{post_id}/summarize")
+async def summarize_single_post(post_id: int, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.llm_summary:
+        return {"ok": True, "summary": post.llm_summary}
+    summary = await summarize_post(post.title, post.content)
+    if summary:
+        post.llm_summary = summary
+        db.commit()
+    return {"ok": True, "summary": summary}
+
+@app.post("/api/backfill-summaries")
+async def backfill_summaries(background_tasks: BackgroundTasks, limit: int = 10, db: Session = Depends(get_db)):
+    posts = db.query(Post).filter(Post.llm_summary == None).order_by(Post.published_at.desc()).limit(limit).all()
+    updated = 0
+    for p in posts:
+        summary = await summarize_post(p.title, p.content)
+        if summary:
+            p.llm_summary = summary
+            updated += 1
+    db.commit()
+    return {"ok": True, "updated": updated, "remaining": db.query(Post).filter(Post.llm_summary == None).count()}
 
 # Serve frontend in production (from backend/static if available, otherwise from ../../frontend/dist)
 from fastapi.staticfiles import StaticFiles

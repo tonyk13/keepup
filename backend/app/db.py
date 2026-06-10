@@ -17,6 +17,7 @@ class Post(Base):
     title = Column(String, nullable=False)
     url = Column(String, nullable=False, unique=True, index=True)
     content = Column(Text)
+    llm_summary = Column(Text, nullable=True)
     source = Column(String, nullable=False, index=True)
     category = Column(String, index=True)  # tech, ai_research, community, news
     published_at = Column(DateTime, nullable=False, index=True)
