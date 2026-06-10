@@ -150,6 +150,7 @@ def evaluate_post(title: str, content: str, source: str, category: str = "", pub
         # Product / Tooling
         "scale_ai": 12, "cursor": 14, "runway": 12,
         "weights_biases": 12, "ai21": 12,
+        "mastra": 14,
         "microsoft_research_ai": 14,
         "hackernews": 0,
         "reddit": 0,

@@ -9,7 +9,7 @@ An intelligent AI news aggregator that continuously scrapes top AI research labs
 - **Smart Defaults**: Loads with past week + min score 75 + arXiv hidden - so you see fresh, high-signal news immediately
 - **Multi-Source Coverage**:
   - **AI Research Labs**: Anthropic, OpenAI, Google AI, Meta AI, xAI, Mistral, Cohere, DeepSeek, Qwen, Stability AI
-  - **AI Tooling**: Hugging Face, LangChain, LlamaIndex, Pinecone, Weaviate, Cursor, Replicate
+  - **AI Tooling**: Hugging Face, LangChain, LlamaIndex, Pinecone, Weaviate, Cursor, Replicate, Mastra
   - **Academic**: arXiv CS.AI, arXiv CS.CL, BAIR Berkeley, EleutherAI
   - **Writers & Newsletters**: Lilian Weng, Import AI, Ethan Mollick, Chip Huyen, Sebastian Raschka, Eugene Yan
   - **Tech Blogs**: Netflix, Stripe, AWS, Cloudflare, Datadog, NVIDIA, Vercel, GitHub, Google Developers

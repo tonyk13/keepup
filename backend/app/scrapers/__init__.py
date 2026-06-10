@@ -262,6 +262,20 @@ def get_all_scrapers() -> List[BaseScraper]:
     for name, url, cat, selectors in product_html:
         scrapers.append(HTMLScraper(name, url, cat, selectors))
 
+    # Mastra blog (HTML)
+    scrapers.append(HTMLScraper(
+        "mastra",
+        "https://mastra.ai/blog",
+        "ai_tooling",
+        {
+            "article_selector": "a[href^='/blog/']:not([href*='/page/'])",
+            "title_selector": "h2",
+            "link_selector": "a",
+            "date_selector": "span.block.shrink-0.text-xs",
+            "summary_selector": "p.line-clamp-3",
+        }
+    ))
+
     # --- AI NEWS / AGGREGATORS ---
     news_sources = [
         ("ai_news", "https://www.artificialintelligence-news.com/feed/", "ai_news", "https://www.artificialintelligence-news.com"),
