@@ -16,7 +16,6 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
         print("[Kimi] KIMI_API_KEY not set, skipping summary generation")
         return None
 
-    # Truncate content to avoid burning tokens
     excerpt = (content or "")[:1200]
     user_prompt = f"Title: {title}\n\nExcerpt: {excerpt}\n\nSummarize:"
 
@@ -40,7 +39,6 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
             )
             resp.raise_for_status()
             data = resp.json()
-            print(f"[Kimi] Raw response: {data}")
             summary = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             return summary if summary else None
     except httpx.HTTPStatusError as e:

@@ -40,6 +40,23 @@ def run_scrapers_sync():
     finally:
         db.close()
 
+async def _generate_summaries_for_posts(post_ids: List[int]):
+    """Generate LLM summaries for specific posts. Called when posts are displayed to users."""
+    db = SessionLocal()
+    try:
+        for post_id in post_ids:
+            post = db.query(Post).filter(Post.id == post_id).first()
+            if post and not post.llm_summary:
+                summary = await summarize_post(post.title, post.content)
+                if summary:
+                    post.llm_summary = summary
+                    db.add(post)
+                    db.commit()
+    except Exception as e:
+        print(f"[{datetime.now().isoformat()}] ERROR generating summaries: {e}")
+    finally:
+        db.close()
+
 async def _run_scrapers(db: Session):
     scrapers = get_all_scrapers()
     for scraper in scrapers:
@@ -91,23 +108,6 @@ async def _run_scrapers(db: Session):
                 db.add(post)
                 added += 1
             db.commit()
-            # Generate LLM summaries for newly added posts
-            if added > 0:
-                try:
-                    new_posts = db.query(Post).filter(
-                        Post.source == source_name,
-                        Post.scraped_at >= datetime.utcnow() - timedelta(minutes=5)
-                    ).all()
-                    for np in new_posts:
-                        if not np.llm_summary:
-                            summary = await summarize_post(np.title, np.content)
-                            if summary:
-                                np.llm_summary = summary
-                                db.add(np)
-                    db.commit()
-                except Exception as e:
-                    print(f"[{datetime.now().isoformat()}] ERROR summarizing {source_name}: {e}")
-                    db.rollback()
             # Update source metadata
             src = db.query(Source).filter(Source.name == source_name).first()
             if src:
@@ -174,6 +174,7 @@ def list_posts(
     sort: str = Query("score"),  # score, date
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db),
 ):
     query = db.query(Post)
@@ -213,6 +214,14 @@ def list_posts(
 
     total = query.count()
     posts = query.offset(offset).limit(limit).all()
+    
+    # Fire background task to generate LLM summaries for displayed posts that don't have them
+    # This only generates summaries for posts the user is actually viewing, saving costs
+    posts_needing_summary = [p for p in posts if not p.llm_summary]
+    if posts_needing_summary and background_tasks:
+        # Only generate summaries for posts the user is actually viewing
+        background_tasks.add_task(_generate_summaries_for_posts, [p.id for p in posts_needing_summary])
+    
     return {
         "total": total,
         "offset": offset,
