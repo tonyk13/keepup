@@ -49,3 +49,5 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
         error_msg = f"[Kimi] Summary failed: {type(e).__name__}: {e}"
         print(error_msg)
         return None
+    finally:
+        print(f"[Kimi] Summary request completed for: {title[:50]}...")
