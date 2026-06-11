@@ -221,6 +221,8 @@ def list_posts(
     if posts_needing_summary and background_tasks:
         print(f"[{datetime.now().isoformat()}] Firing background task for {len(posts_needing_summary)} posts needing summaries")
         background_tasks.add_task(_generate_summaries_for_posts, [p.id for p in posts_needing_summary])
+    elif posts_needing_summary:
+        print(f"[{datetime.now().isoformat()}] WARNING: {len(posts_needing_summary)} posts need summaries but background_tasks not available")
     
     return {
         "total": total,
