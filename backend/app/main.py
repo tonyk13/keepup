@@ -218,17 +218,15 @@ async def list_posts(
     # This only generates summaries for posts the user is actually viewing, saving costs
     posts_needing_summary = [p for p in posts if not p.llm_summary]
     if posts_needing_summary:
-        print(f"[{datetime.now().isoformat()}] Generating summaries for {len(posts_needing_summary)} displayed posts")
         for p in posts_needing_summary:
             try:
                 summary = await summarize_post(p.title, p.content)
                 if summary:
                     p.llm_summary = summary
                     db.add(p)
-            except Exception as e:
-                print(f"[{datetime.now().isoformat()}] ERROR generating summary for post {p.id}: {e}")
-        if posts_needing_summary:
-            db.commit()
+            except Exception:
+                pass
+        db.commit()
     
     return {
         "total": total,
