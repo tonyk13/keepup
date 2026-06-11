@@ -219,7 +219,7 @@ def list_posts(
     # This only generates summaries for posts the user is actually viewing, saving costs
     posts_needing_summary = [p for p in posts if not p.llm_summary]
     if posts_needing_summary and background_tasks:
-        # Only generate summaries for posts the user is actually viewing
+        print(f"[{datetime.now().isoformat()}] Firing background task for {len(posts_needing_summary)} posts needing summaries")
         background_tasks.add_task(_generate_summaries_for_posts, [p.id for p in posts_needing_summary])
     
     return {
