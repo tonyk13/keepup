@@ -40,6 +40,7 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
             )
             resp.raise_for_status()
             data = resp.json()
+            print(f"[Kimi] Raw response: {data}")
             summary = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             return summary if summary else None
     except httpx.HTTPStatusError as e:
