@@ -162,7 +162,7 @@ app.add_middleware(
 )
 
 @app.get("/api/posts")
-def list_posts(
+async def list_posts(
     category: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
     exclude_source: Optional[str] = Query(None),
@@ -174,7 +174,6 @@ def list_posts(
     sort: str = Query("score"),  # score, date
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     query = db.query(Post)
