@@ -42,26 +42,18 @@ def run_scrapers_sync():
 
 async def _generate_summaries_for_posts(post_ids: List[int]):
     """Generate LLM summaries for specific posts. Called when posts are displayed to users."""
-    # Write to a file to confirm background task ran
-    with open("/tmp/summary_bg.log", "a") as f:
-        f.write(f"[{datetime.now().isoformat()}] Starting summary generation for {len(post_ids)} posts\n")
     db = SessionLocal()
     try:
         for post_id in post_ids:
             post = db.query(Post).filter(Post.id == post_id).first()
             if post and not post.llm_summary:
-                with open("/tmp/summary_bg.log", "a") as f:
-                    f.write(f"[{datetime.now().isoformat()}] Generating summary for post {post_id}\n")
                 summary = await summarize_post(post.title, post.content)
-                with open("/tmp/summary_bg.log", "a") as f:
-                    f.write(f"[{datetime.now().isoformat()}] Summary result for post {post_id}: {summary[:50] if summary else 'None'}\n")
                 if summary:
                     post.llm_summary = summary
                     db.add(post)
                     db.commit()
     except Exception as e:
-        with open("/tmp/summary_bg.log", "a") as f:
-            f.write(f"[{datetime.now().isoformat()}] ERROR generating summaries: {e}\n")
+        print(f"[{datetime.now().isoformat()}] ERROR generating summaries: {e}")
     finally:
         db.close()
 
@@ -227,7 +219,14 @@ async def list_posts(
     posts_needing_summary = [p for p in posts if not p.llm_summary]
     if posts_needing_summary:
         print(f"[{datetime.now().isoformat()}] Firing background task for {len(posts_needing_summary)} posts needing summaries")
-        asyncio.create_task(_generate_summaries_for_posts([p.id for p in posts_needing_summary]))
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(_generate_summaries_for_posts([p.id for p in posts_needing_summary]))
+            else:
+                asyncio.run(_generate_summaries_for_posts([p.id for p in posts_needing_summary]))
+        except Exception as e:
+            print(f"[{datetime.now().isoformat()}] ERROR creating background task: {e}")
     
     return {
         "total": total,
