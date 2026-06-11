@@ -214,19 +214,21 @@ async def list_posts(
     total = query.count()
     posts = query.offset(offset).limit(limit).all()
     
-    # Fire background task to generate LLM summaries for displayed posts that don't have them
+    # Generate LLM summaries for displayed posts that don't have them
     # This only generates summaries for posts the user is actually viewing, saving costs
     posts_needing_summary = [p for p in posts if not p.llm_summary]
     if posts_needing_summary:
-        print(f"[{datetime.now().isoformat()}] Firing background task for {len(posts_needing_summary)} posts needing summaries")
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                loop.create_task(_generate_summaries_for_posts([p.id for p in posts_needing_summary]))
-            else:
-                asyncio.run(_generate_summaries_for_posts([p.id for p in posts_needing_summary]))
-        except Exception as e:
-            print(f"[{datetime.now().isoformat()}] ERROR creating background task: {e}")
+        print(f"[{datetime.now().isoformat()}] Generating summaries for {len(posts_needing_summary)} displayed posts")
+        for p in posts_needing_summary:
+            try:
+                summary = await summarize_post(p.title, p.content)
+                if summary:
+                    p.llm_summary = summary
+                    db.add(p)
+            except Exception as e:
+                print(f"[{datetime.now().isoformat()}] ERROR generating summary for post {p.id}: {e}")
+        if posts_needing_summary:
+            db.commit()
     
     return {
         "total": total,
