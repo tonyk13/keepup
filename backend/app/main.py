@@ -174,7 +174,7 @@ def list_posts(
     sort: str = Query("score"),  # score, date
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    background_tasks: BackgroundTasks = None,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     query = db.query(Post)
