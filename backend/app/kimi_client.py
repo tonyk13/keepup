@@ -29,13 +29,13 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "kimi-k2.6",
+                    "model": "moonshot-v1-8k",
                     "messages": [
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": user_prompt},
                     ],
                     "temperature": 1,
-                    "max_tokens": 1024,
+                    "max_tokens": 200,
                 },
             )
             resp.raise_for_status()
