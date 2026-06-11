@@ -303,6 +303,17 @@ def health_check():
         "kimi_api_key_configured": bool(os.getenv("KIMI_API_KEY")),
     }
 
+@app.get("/api/kimi-test")
+async def test_kimi_api():
+    """Test the Kimi API with a simple ping and return the full response."""
+    from .kimi_client import summarize_post
+    result = await summarize_post("Test Title", "This is a test excerpt for KeepUp.")
+    return {
+        "ok": True,
+        "summary": result,
+        "key_prefix": os.getenv("KIMI_API_KEY", "")[:4] + "..." if os.getenv("KIMI_API_KEY") else "NOT SET",
+    }
+
 @app.post("/api/trigger-scrape")
 def trigger_scrape(background_tasks: BackgroundTasks):
     db = SessionLocal()

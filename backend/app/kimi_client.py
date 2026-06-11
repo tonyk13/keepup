@@ -43,8 +43,10 @@ async def summarize_post(title: str, content: str) -> Optional[str]:
             summary = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             return summary if summary else None
     except httpx.HTTPStatusError as e:
-        print(f"[Kimi] HTTP error {e.response.status_code}: {e.response.text}")
+        error_msg = f"[Kimi] HTTP error {e.response.status_code}: {e.response.text}"
+        print(error_msg)
         return None
     except Exception as e:
-        print(f"[Kimi] Summary failed: {e}")
+        error_msg = f"[Kimi] Summary failed: {type(e).__name__}: {e}"
+        print(error_msg)
         return None
