@@ -42,18 +42,26 @@ def run_scrapers_sync():
 
 async def _generate_summaries_for_posts(post_ids: List[int]):
     """Generate LLM summaries for specific posts. Called when posts are displayed to users."""
+    # Write to a file to confirm background task ran
+    with open("/tmp/summary_bg.log", "a") as f:
+        f.write(f"[{datetime.now().isoformat()}] Starting summary generation for {len(post_ids)} posts\n")
     db = SessionLocal()
     try:
         for post_id in post_ids:
             post = db.query(Post).filter(Post.id == post_id).first()
             if post and not post.llm_summary:
+                with open("/tmp/summary_bg.log", "a") as f:
+                    f.write(f"[{datetime.now().isoformat()}] Generating summary for post {post_id}\n")
                 summary = await summarize_post(post.title, post.content)
+                with open("/tmp/summary_bg.log", "a") as f:
+                    f.write(f"[{datetime.now().isoformat()}] Summary result for post {post_id}: {summary[:50] if summary else 'None'}\n")
                 if summary:
                     post.llm_summary = summary
                     db.add(post)
                     db.commit()
     except Exception as e:
-        print(f"[{datetime.now().isoformat()}] ERROR generating summaries: {e}")
+        with open("/tmp/summary_bg.log", "a") as f:
+            f.write(f"[{datetime.now().isoformat()}] ERROR generating summaries: {e}\n")
     finally:
         db.close()
 
@@ -160,13 +168,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/api/test-bg")
-async def test_bg():
-    async def _test():
-        print("[TEST] Background task ran")
-    asyncio.create_task(_test())
-    return {"ok": True}
 
 @app.get("/api/posts")
 async def list_posts(
