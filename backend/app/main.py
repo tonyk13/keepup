@@ -161,6 +161,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/api/test-bg")
+async def test_bg():
+    async def _test():
+        print("[TEST] Background task ran")
+    asyncio.create_task(_test())
+    return {"ok": True}
+
 @app.get("/api/posts")
 async def list_posts(
     category: Optional[str] = Query(None),
