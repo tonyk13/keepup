@@ -1,6 +1,6 @@
 # KeepUp
 
-An intelligent AI news aggregator that continuously scrapes top AI research labs, tech blogs, arXiv, newsletters, Reddit, and Hacker News - then scores and filters out the noise so you only see high-signal posts.
+An intelligent AI news aggregator website that continuously scrapes top AI research labs, tech blogs, arXiv, newsletters, Reddit, and Hacker News - then scores and filters out the noise so you only see high-signal posts.
 
 ## Features
 
